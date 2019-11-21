@@ -1,6 +1,9 @@
 {
-    "name": "fcc-boilerplate-infosec",
+    "name": "fcc-issuetracker",
     "version": 2,
+    "env": {
+        "ATLAS_URI": "@issuetracker-atlas-uri"
+    },
     "builds": [
         { "src": "server/index.js", "use": "@now/node-server" },
         {
@@ -11,9 +14,9 @@
     ],
     "routes": [
         {
-            "src": "/api/test",
+            "src": "/api/issues/(.*)",
             "dest": "/server/index.js",
-            "methods": ["GET"]
+            "methods": ["POST"]
         },
         {
             "src": "/",

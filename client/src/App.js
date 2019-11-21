@@ -66,9 +66,7 @@ const App = () => {
         <>
             <GlobalStyle />
             <Layout>
-                <Title>
-                    Information Security and Quality Assurance Boilerplate
-                </Title>
+                <Title>Issue Tracker</Title>
 
                 <Card>
                     <h3>User Stories</h3>
