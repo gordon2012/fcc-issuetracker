@@ -37,6 +37,47 @@ const Card = styled.section`
 
 const List = styled.ul``;
 
+const StyledForm = styled.form`
+    /* border: 3px solid red;
+    padding: 1rem; */
+`;
+const Form = ({ children, debug, onSubmit, ...restProps }) => {
+    const [input, setRawInput] = React.useState({});
+    const setInput = (name, value) => {
+        setRawInput(prevState => ({ ...prevState, [name]: value }));
+    };
+
+    let elements = React.Children.toArray(children);
+
+    elements = elements.map((ele, i) =>
+        React.cloneElement(ele, { onChange: setInput })
+    );
+
+    const handleSubmit = event => {
+        event.preventDefault();
+        onSubmit(input);
+    };
+
+    return (
+        <StyledForm onSubmit={handleSubmit} {...restProps}>
+            {elements}
+            {debug && <Code box>{input}</Code>}
+        </StyledForm>
+    );
+};
+
+const Test = ({ children }) => {
+    let elements = React.Children.toArray(children);
+
+    elements = elements.map((ele, i) => (
+        <li key={i}>
+            {React.cloneElement(ele, { onClick: () => console.log(i) })}
+        </li>
+    ));
+
+    return <ul>{elements}</ul>;
+};
+
 const App = () => {
     const [input, setRawInput] = React.useState({});
     const setInput = (name, value) => {
@@ -60,6 +101,10 @@ const App = () => {
         const data = await response.json();
         setResponses(prevState => [data, ...prevState]);
         setResults(prevState => ({ ...prevState, postIssue: data }));
+    };
+
+    const putIssue = async input => {
+        console.log(input);
     };
 
     return (
@@ -173,6 +218,26 @@ const App = () => {
                     )}
                 </Card>
 
+                <Card>
+                    <h3>
+                        <Code>{`PUT /api/issues/${
+                            input.projectname
+                                ? input.projectname
+                                : '{projectname}'
+                        }`}</Code>
+                    </h3>
+
+                    <Form debug onSubmit={putIssue}>
+                        <Input name="projectname" title="Project Name" />
+                        <Input name="issue_title" title="Issue Title" />
+                        <Input name="issue_text" title="Issue Text" />
+                        <Input name="created_by" title="Created by" />
+                        <Input name="assigned_to" title="Assigned to" />
+                        <Input name="status_text" title="Status Text" />
+                        <Button type="submit">Submit</Button>
+                    </Form>
+                </Card>
+
                 <Title as="h2">Debug</Title>
 
                 <Card>
@@ -190,6 +255,22 @@ const App = () => {
                     ) : (
                         <Code box> </Code>
                     )}
+
+                    <Test>
+                        <p>Hello</p>
+                        <p>World</p>
+                    </Test>
+
+                    <Form
+                        debug
+                        onSubmit={event => {
+                            event.preventDefault();
+                            console.log('would submit');
+                        }}
+                    >
+                        <Input name="test1" title="Test 1" />
+                        <Button type="submit">Submit</Button>
+                    </Form>
                 </Card>
             </Layout>
         </>
