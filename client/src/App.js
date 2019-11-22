@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 import Code from './components/Code';
 import Input from './components/Input';
 import Button from './components/Button';
+import Form from './components/Form';
 
 const GlobalStyle = createGlobalStyle`
     @import url('https://fonts.googleapis.com/css?family=Ubuntu+Mono|Ubuntu:400,700&display=swap');
@@ -37,35 +38,6 @@ const Card = styled.section`
 
 const List = styled.ul``;
 
-const StyledForm = styled.form`
-    /* border: 3px solid red;
-    padding: 1rem; */
-`;
-const Form = ({ children, debug, onSubmit, ...restProps }) => {
-    const [input, setRawInput] = React.useState({});
-    const setInput = (name, value) => {
-        setRawInput(prevState => ({ ...prevState, [name]: value }));
-    };
-
-    let elements = React.Children.toArray(children);
-
-    elements = elements.map((ele, i) =>
-        React.cloneElement(ele, { onChange: setInput })
-    );
-
-    const handleSubmit = event => {
-        event.preventDefault();
-        onSubmit(input);
-    };
-
-    return (
-        <StyledForm onSubmit={handleSubmit} {...restProps}>
-            {elements}
-            {debug && <Code box>{input}</Code>}
-        </StyledForm>
-    );
-};
-
 const Test = ({ children }) => {
     let elements = React.Children.toArray(children);
 
@@ -86,6 +58,13 @@ const App = () => {
     const [results, setResults] = React.useState({});
     const [responses, setResponses] = React.useState([]);
 
+    const test = async () => {
+        const response = await fetch(`${BASE_URL}/api/issues`);
+        const data = await response.json();
+        setResponses(prevState => [data, ...prevState]);
+        setResults(prevState => ({ ...prevState, test: data }));
+    };
+
     const postIssue = async event => {
         event.preventDefault();
 
@@ -104,7 +83,25 @@ const App = () => {
     };
 
     const putIssue = async input => {
-        console.log(input);
+        const { projectname = '', ...body } = input;
+        const response = await fetch(`${BASE_URL}/api/issues/${projectname}`, {
+            method: 'PUT',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        // console.log(response);
+        // return;
+
+        const data = await response.json();
+
+        // console.log(data);
+
+        setResponses(prevState => [data, ...prevState]);
+        setResults(prevState => ({ ...prevState, putIssue: data }));
     };
 
     return (
@@ -220,15 +217,12 @@ const App = () => {
 
                 <Card>
                     <h3>
-                        <Code>{`PUT /api/issues/${
-                            input.projectname
-                                ? input.projectname
-                                : '{projectname}'
-                        }`}</Code>
+                        <Code>{`PUT /api/issues/{projectname}`}</Code>
                     </h3>
 
                     <Form debug onSubmit={putIssue}>
                         <Input name="projectname" title="Project Name" />
+                        <Input name="id" title="id" />
                         <Input name="issue_title" title="Issue Title" />
                         <Input name="issue_text" title="Issue Text" />
                         <Input name="created_by" title="Created by" />
@@ -236,15 +230,33 @@ const App = () => {
                         <Input name="status_text" title="Status Text" />
                         <Button type="submit">Submit</Button>
                     </Form>
+
+                    {results.putIssue && (
+                        <>
+                            <h3>Result</h3>
+                            <Code box>{results.putIssue}</Code>
+                        </>
+                    )}
                 </Card>
 
                 <Title as="h2">Debug</Title>
 
                 <Card>
-                    <h3>Input</h3>
+                    <Button onClick={test}>Get all</Button>
+                    {results.test && (
+                        <>
+                            <h3>Results</h3>
+                            {results.test.map((e, i) => (
+                                <Code box key={i}>
+                                    {e}
+                                </Code>
+                            ))}
+                        </>
+                    )}
+                    {/* <h3>Input</h3>
                     <Code box>{input}</Code>
                     <h3>Results</h3>
-                    <Code box>{results}</Code>
+                    <Code box>{results}</Code> */}
                     <h3>Responses</h3>
                     {responses.length ? (
                         responses.map((e, i) => (
@@ -255,22 +267,6 @@ const App = () => {
                     ) : (
                         <Code box> </Code>
                     )}
-
-                    <Test>
-                        <p>Hello</p>
-                        <p>World</p>
-                    </Test>
-
-                    <Form
-                        debug
-                        onSubmit={event => {
-                            event.preventDefault();
-                            console.log('would submit');
-                        }}
-                    >
-                        <Input name="test1" title="Test 1" />
-                        <Button type="submit">Submit</Button>
-                    </Form>
                 </Card>
             </Layout>
         </>

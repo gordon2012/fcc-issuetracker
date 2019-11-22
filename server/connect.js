@@ -8,6 +8,8 @@ const dbUrl =
 const connect = async (model, schema) => {
     const connection = await mongoose.createConnection(dbUrl, {
         useNewUrlParser: true,
+        useFindAndModify: false,
+        useUnifiedTopology: true,
         bufferCommands: false,
         bufferMaxEntries: 0,
     });
