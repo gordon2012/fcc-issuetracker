@@ -37,23 +37,20 @@ app.post('/api/issues/:projectname', async (req, res) => {
     }
 });
 
-app.put('/api/issues/:projectname', async (req, res) => {
+app.put('/api/issues/:projectname?', async (req, res) => {
     try {
         const { projectname } = req.params;
-        // // console.log(req.params);
-        // if (!projectname) {
-        //     // console.log('ERROR');
-        // }
-
         const { id, ...data } = req.body;
+
+        if (!id) {
+            return res.status(200).json('missing id');
+        }
+
+        if (Object.keys(data).length === 0) {
+            return res.status(200).json('no updated field sent');
+        }
+
         const Issue = await connect('issue', issueSchema);
-
-        // const issue = await Issue.findById(id);
-        // console.log(issue);
-
-        // if (issue.projectname !== projectname) {
-        //     throw new Error(`Issue not found under project ${projectname}.`);
-        // }
 
         const updatedIssue = await Issue.findOneAndUpdate(
             { _id: id, projectname },
@@ -62,17 +59,10 @@ app.put('/api/issues/:projectname', async (req, res) => {
         );
 
         if (!updatedIssue) {
-            // return res.status(400).end();
-            throw new Error('Issue not found');
+            return res.status(200).json(`could not update ${id}`);
         }
 
-        res.status(200).json(updatedIssue);
-
-        // const issue = await Issue.updateOne({ name: 'Jean-Luc Picard' }, { ship: 'USS Enterprise' });
-
-        // res.status(200).json(issue.toJSON());
-        // console.log({ projectname, data });
-        // res.status(200).json({ projectname, id, data });
+        res.status(200).json('successfully updated');
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
