@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 const connect = require('./connect');
 const issueSchema = require('./models/issue');
@@ -45,13 +46,11 @@ app.put('/api/issues/:projectname?', async (req, res) => {
         if (!id) {
             return res.status(200).json('missing id');
         }
-
         if (Object.keys(data).length === 0) {
             return res.status(200).json('no updated field sent');
         }
 
         const Issue = await connect('issue', issueSchema);
-
         const updatedIssue = await Issue.findOneAndUpdate(
             { _id: id, projectname },
             data,
@@ -59,10 +58,35 @@ app.put('/api/issues/:projectname?', async (req, res) => {
         );
 
         if (!updatedIssue) {
-            return res.status(200).json(`could not update ${id}`);
+            res.status(200).json(`could not update ${id}`);
+        } else {
+            res.status(200).json('successfully updated');
+        }
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.delete('/api/issues/:projectname?', async (req, res) => {
+    try {
+        const { projectname } = req.params;
+        const { id } = req.body;
+
+        if (!id) {
+            return res.status(200).json('id error');
+        }
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(200).json(`could not delete ${id}`);
         }
 
-        res.status(200).json('successfully updated');
+        const Issue = await connect('issue', issueSchema);
+        const issue = await Issue.findOneAndRemove({ _id: id, projectname });
+
+        if (!issue) {
+            res.status(200).json(`could not delete ${id}`);
+        } else {
+            res.status(200).json(`deleted ${id}`);
+        }
     } catch (error) {
         res.status(400).json({ error: error.message });
     }

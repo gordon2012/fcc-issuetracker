@@ -42,43 +42,30 @@ const App = () => {
     const [results, setResults] = React.useState({});
     const [responses, setResponses] = React.useState([]);
 
-    const test = async () => {
+    const createFetcher = (name, method) => async input => {
+        const { projectname = '', ...body } = input;
+        const response = await fetch(`${BASE_URL}/api/issues/${projectname}`, {
+            method: method,
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        setResponses(prevState => [data, ...prevState]);
+        setResults(prevState => ({ ...prevState, [name]: data }));
+    };
+    const postIssue = createFetcher('postIssue', 'POST');
+    const putIssue = createFetcher('putIssue', 'PUT');
+    const deleteIssue = createFetcher('deleteIssue', 'DELETE');
+
+    // debug
+    const getIssues = async () => {
         const response = await fetch(`${BASE_URL}/api/issues`);
         const data = await response.json();
         setResponses(prevState => [data, ...prevState]);
-        setResults(prevState => ({ ...prevState, test: data }));
-    };
-
-    const postIssue = async input => {
-        const { projectname, ...body } = input;
-        const response = await fetch(`${BASE_URL}/api/issues/${projectname}`, {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
-        });
-        const data = await response.json();
-        setResponses(prevState => [data, ...prevState]);
-        setResults(prevState => ({ ...prevState, postIssue: data }));
-    };
-
-    const putIssue = async input => {
-        const { projectname = '', ...body } = input;
-        const response = await fetch(`${BASE_URL}/api/issues/${projectname}`, {
-            method: 'PUT',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
-        });
-
-        const data = await response.json();
-
-        setResponses(prevState => [data, ...prevState]);
-        setResults(prevState => ({ ...prevState, putIssue: data }));
+        setResults(prevState => ({ ...prevState, getIssues: data }));
     };
 
     return (
@@ -117,6 +104,15 @@ const App = () => {
                             'successfully updated' or 'could not update '+id.
                             This should always update updated_on. If no fields
                             are sent return 'no updated field sent'.
+                        </li>
+                        <li>
+                            I can{' '}
+                            <Code
+                                inline
+                            >{`DELETE /api/issues/{projectname}`}</Code>{' '}
+                            with a id to completely delete an issue. If no _id
+                            is sent return 'id error', success: 'deleted '+id,
+                            failed: 'could not delete '+id.
                         </li>
                     </List>
                 </Card>
@@ -185,8 +181,12 @@ const App = () => {
                     </h3>
 
                     <Form debug onSubmit={putIssue}>
-                        <Input name="projectname" title="Project Name" />
-                        <Input name="id" title="id" />
+                        <Input
+                            required
+                            name="projectname"
+                            title="Project Name"
+                        />
+                        <Input required name="id" title="id" />
                         <Input name="issue_title" title="Issue Title" />
                         <Input name="issue_text" title="Issue Text" />
                         <Input name="created_by" title="Created by" />
@@ -213,14 +213,37 @@ const App = () => {
                     )}
                 </Card>
 
+                <Card>
+                    <h3>
+                        <Code>{`DELETE /api/issues/{projectname}`}</Code>
+                    </h3>
+
+                    <Form debug onSubmit={deleteIssue}>
+                        <Input
+                            required
+                            name="projectname"
+                            title="Project Name"
+                        />
+                        <Input required name="id" title="id" />
+                        <Button type="submit">Submit</Button>
+                    </Form>
+
+                    {results.deleteIssue && (
+                        <>
+                            <h3>Result</h3>
+                            <Code box>{results.deleteIssue}</Code>
+                        </>
+                    )}
+                </Card>
+
                 <Title as="h2">Debug</Title>
 
                 <Card>
-                    <Button onClick={test}>Get all</Button>
-                    {results.test && (
+                    <Button onClick={getIssues}>Get all</Button>
+                    {results.getIssues && (
                         <>
                             <h3>Results</h3>
-                            {results.test.map((e, i) => (
+                            {results.getIssues.map((e, i) => (
                                 <Code box key={i}>
                                     {e}
                                 </Code>
