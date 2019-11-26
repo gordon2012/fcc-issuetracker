@@ -14,15 +14,15 @@ app.use(cors({ origin }));
 app.use(express.json());
 
 // debug
-app.get('/api/issues', async (req, res) => {
-    try {
-        const Issue = await connect('issue', issueSchema);
-        const issues = await Issue.find();
-        res.status(200).json(issues);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
+// app.get('/api/issues', async (req, res) => {
+//     try {
+//         const Issue = await connect('issue', issueSchema);
+//         const issues = await Issue.find();
+//         res.status(200).json(issues);
+//     } catch (error) {
+//         res.status(400).json({ error: error.message });
+//     }
+// });
 
 app.post('/api/issues/:projectname', async (req, res) => {
     try {
@@ -87,6 +87,33 @@ app.delete('/api/issues/:projectname?', async (req, res) => {
         } else {
             res.status(200).json(`deleted ${id}`);
         }
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.get('/api/issues/:projectname?', async (req, res) => {
+    // ???
+    try {
+        req.query.open && Boolean(req.query.open);
+    } catch (error) {
+        res.status(400).json({ error: 'boolean error of some sort' });
+    }
+
+    try {
+        const { projectname } = req.params;
+
+        // console.log(req.query);
+
+        // const { open, ...query } = req.query;
+        // console.log(Boolean(open));
+
+        const Issue = await connect('issue', issueSchema);
+        const issues = await Issue.find({ projectname, ...req.query });
+
+        res.status(200).json(issues);
+
+        // res.status(200).json(issues);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }

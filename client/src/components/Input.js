@@ -42,7 +42,7 @@ const Input = ({ required, name, title, type, options, onChange, value }) => {
 
     return (
         <StyledInput required={required}>
-            <label htmlFor={`${name}-${id}`}>{title}</label>
+            <label htmlFor={`${name}-${id}`}>{title || name}</label>
 
             {type === 'dropdown' ? (
                 <select

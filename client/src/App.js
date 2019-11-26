@@ -42,16 +42,50 @@ const App = () => {
     const [results, setResults] = React.useState({});
     const [responses, setResponses] = React.useState([]);
 
+    // const getUrl = input =>
+
+    const t0 = {};
+    const t1 = { a: 'AAA', b: 'BBB', c: 'CCC' };
+    const t2 = `?${Object.keys(t1)
+        .map(k => `${k}=${t1[k]}&`)
+        .join('')}`;
+    const t3 = new URLSearchParams(t1).toString();
+    const t4 = new URLSearchParams(t0).toString();
+    console.log(t4.length);
+
     const createFetcher = (name, method) => async input => {
         const { projectname = '', ...body } = input;
-        const response = await fetch(`${BASE_URL}/api/issues/${projectname}`, {
-            method: method,
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
-        });
+        const options =
+            method === 'GET'
+                ? {
+                      method,
+                  }
+                : {
+                      method,
+                      headers: {
+                          Accept: 'application/json',
+                          'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(body),
+                  };
+
+        // const url =
+        //     method === 'GET'
+        //         ? `${BASE_URL}/api/issues/${projectname}`
+        //         : `${BASE_URL}/api/issues/${projectname}`;
+
+        let url;
+        if (method === 'GET') {
+            const query = new URLSearchParams(body).toString();
+            url = `${BASE_URL}/api/issues/${projectname}${
+                query.length > 0 ? `?${query}` : ''
+            }`;
+        } else {
+            url = `${BASE_URL}/api/issues/${projectname}`;
+        }
+        console.log(url);
+
+        const response = await fetch(url, options);
         const data = await response.json();
         setResponses(prevState => [data, ...prevState]);
         setResults(prevState => ({ ...prevState, [name]: data }));
@@ -61,12 +95,16 @@ const App = () => {
     const deleteIssue = createFetcher('deleteIssue', 'DELETE');
 
     // debug
-    const getIssues = async () => {
-        const response = await fetch(`${BASE_URL}/api/issues`);
-        const data = await response.json();
-        setResponses(prevState => [data, ...prevState]);
-        setResults(prevState => ({ ...prevState, getIssues: data }));
-    };
+    // const getIssues = async () => {
+    //     const response = await fetch(`${BASE_URL}/api/issues`);
+    //     const data = await response.json();
+    //     setResponses(prevState => [data, ...prevState]);
+    //     setResults(prevState => ({ ...prevState, getIssues: data }));
+    // };
+
+    // const getIssues = () => console.log('would get issues');
+
+    const getIssues = createFetcher('getIssues', 'GET');
 
     return (
         <>
@@ -236,10 +274,41 @@ const App = () => {
                     )}
                 </Card>
 
+                <Card>
+                    <h3>
+                        <Code>{`GET /api/issues/{projectname}`}</Code>
+                    </h3>
+
+                    <Form debug onSubmit={getIssues}>
+                        <Input
+                            notrequired
+                            name="projectname"
+                            title="Project Name"
+                        />
+                        <Input name="_id" />
+                        <Input name="issue_title" />
+                        <Input name="issue_text" />
+                        <Input name="created_by" />
+                        <Input name="assigned_to" />
+                        <Input name="status_text" />
+                        <Input name="open" />
+                        <Input name="created_at" />
+                        <Input name="updated_at" />
+                        <Button type="submit">Submit</Button>
+                    </Form>
+
+                    {results.getIssues && (
+                        <>
+                            <h3>Result</h3>
+                            <Code box>{results.getIssues}</Code>
+                        </>
+                    )}
+                </Card>
+
                 <Title as="h2">Debug</Title>
 
                 <Card>
-                    <Button onClick={getIssues}>Get all</Button>
+                    {/* <Button onClick={getIssues}>Get all</Button>
                     {results.getIssues && (
                         <>
                             <h3>Results</h3>
@@ -249,7 +318,7 @@ const App = () => {
                                 </Code>
                             ))}
                         </>
-                    )}
+                    )} */}
 
                     <h3>Responses</h3>
                     {responses.length ? (
