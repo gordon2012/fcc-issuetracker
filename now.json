@@ -19,6 +19,21 @@
             "methods": ["POST"]
         },
         {
+            "src": "/api/issues/(.*)",
+            "dest": "/server/index.js",
+            "methods": ["PUT"]
+        },
+        {
+            "src": "/api/issues/(.*)",
+            "dest": "/server/index.js",
+            "methods": ["DELETE"]
+        },
+        {
+            "src": "/api/issues/(.*)",
+            "dest": "/server/index.js",
+            "methods": ["GET"]
+        },
+        {
             "src": "/",
             "headers": {
                 "cache-control": "s-maxage=0"
