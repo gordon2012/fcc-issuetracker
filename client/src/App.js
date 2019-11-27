@@ -39,19 +39,14 @@ const Card = styled.section`
 const List = styled.ul``;
 
 const App = () => {
-    const [results, setResults] = React.useState({});
     const [responses, setResponses] = React.useState([]);
 
-    // const getUrl = input =>
-
-    const t0 = {};
-    const t1 = { a: 'AAA', b: 'BBB', c: 'CCC' };
-    const t2 = `?${Object.keys(t1)
-        .map(k => `${k}=${t1[k]}&`)
-        .join('')}`;
-    const t3 = new URLSearchParams(t1).toString();
-    const t4 = new URLSearchParams(t0).toString();
-    console.log(t4.length);
+    const [results, setResults] = React.useState({});
+    const clearResult = name =>
+        setResults(prevState => {
+            const { [name]: __, ...newState } = prevState;
+            return newState;
+        });
 
     const createFetcher = (name, method) => async input => {
         const { projectname = '', ...body } = input;
@@ -69,11 +64,6 @@ const App = () => {
                       body: JSON.stringify(body),
                   };
 
-        // const url =
-        //     method === 'GET'
-        //         ? `${BASE_URL}/api/issues/${projectname}`
-        //         : `${BASE_URL}/api/issues/${projectname}`;
-
         let url;
         if (method === 'GET') {
             const query = new URLSearchParams(body).toString();
@@ -83,7 +73,6 @@ const App = () => {
         } else {
             url = `${BASE_URL}/api/issues/${projectname}`;
         }
-        console.log(url);
 
         const response = await fetch(url, options);
         const data = await response.json();
@@ -93,17 +82,6 @@ const App = () => {
     const postIssue = createFetcher('postIssue', 'POST');
     const putIssue = createFetcher('putIssue', 'PUT');
     const deleteIssue = createFetcher('deleteIssue', 'DELETE');
-
-    // debug
-    // const getIssues = async () => {
-    //     const response = await fetch(`${BASE_URL}/api/issues`);
-    //     const data = await response.json();
-    //     setResponses(prevState => [data, ...prevState]);
-    //     setResults(prevState => ({ ...prevState, getIssues: data }));
-    // };
-
-    // const getIssues = () => console.log('would get issues');
-
     const getIssues = createFetcher('getIssues', 'GET');
 
     return (
@@ -114,8 +92,8 @@ const App = () => {
 
                 <Card>
                     <h3>User Stories</h3>
-                    <List as="ol">
-                        <li>...</li>
+                    <List>
+                        <li>Prevent cross site scripting (XSS) attacks.</li>
                         <li>
                             I can{' '}
                             <Code
@@ -152,6 +130,26 @@ const App = () => {
                             is sent return 'id error', success: 'deleted '+id,
                             failed: 'could not delete '+id.
                         </li>
+                        <li>
+                            I can{' '}
+                            <Code
+                                inline
+                            >{`GET /api/issues/{projectname}`}</Code>{' '}
+                            for an array of all issues on that specific project
+                            with all the information for each issue as was
+                            returned when posted.
+                        </li>
+                        <li>
+                            I can filter my get request by also passing along
+                            any field and value in the query(ie.{' '}
+                            <Code
+                                inline
+                            >{`/api/issues/{project}?open=false`}</Code>
+                            ). I can pass along as many fields/values as I want.
+                        </li>
+                        <li>
+                            All 11 functional tests are complete and passing.
+                        </li>
                     </List>
                 </Card>
 
@@ -186,7 +184,7 @@ const App = () => {
                         <Code>{`POST /api/issues/{projectname}`}</Code>
                     </h3>
 
-                    <Form blank debug onSubmit={postIssue}>
+                    <Form blank onSubmit={postIssue}>
                         <Input
                             required
                             name="projectname"
@@ -201,14 +199,17 @@ const App = () => {
                         <Input required name="created_by" title="Created by" />
                         <Input name="assigned_to" title="Assigned to" />
                         <Input name="status_text" title="Status Text" />
-
                         <Button type="submit">Submit</Button>
+                        <Button type="reset">Reset</Button>
                     </Form>
 
                     {results.postIssue && (
                         <>
                             <h3>Result</h3>
                             <Code box>{results.postIssue}</Code>
+                            <Button onClick={() => clearResult('postIssue')}>
+                                Clear
+                            </Button>
                         </>
                     )}
                 </Card>
@@ -218,7 +219,7 @@ const App = () => {
                         <Code>{`PUT /api/issues/{projectname}`}</Code>
                     </h3>
 
-                    <Form debug onSubmit={putIssue}>
+                    <Form onSubmit={putIssue}>
                         <Input
                             required
                             name="projectname"
@@ -247,6 +248,9 @@ const App = () => {
                         <>
                             <h3>Result</h3>
                             <Code box>{results.putIssue}</Code>
+                            <Button onClick={() => clearResult('putIssue')}>
+                                Clear
+                            </Button>
                         </>
                     )}
                 </Card>
@@ -256,7 +260,7 @@ const App = () => {
                         <Code>{`DELETE /api/issues/{projectname}`}</Code>
                     </h3>
 
-                    <Form debug onSubmit={deleteIssue}>
+                    <Form onSubmit={deleteIssue}>
                         <Input
                             required
                             name="projectname"
@@ -264,12 +268,16 @@ const App = () => {
                         />
                         <Input required name="id" title="id" />
                         <Button type="submit">Submit</Button>
+                        <Button type="reset">Reset</Button>
                     </Form>
 
                     {results.deleteIssue && (
                         <>
                             <h3>Result</h3>
                             <Code box>{results.deleteIssue}</Code>
+                            <Button onClick={() => clearResult('deleteIssue')}>
+                                Clear
+                            </Button>
                         </>
                     )}
                 </Card>
@@ -279,9 +287,9 @@ const App = () => {
                         <Code>{`GET /api/issues/{projectname}`}</Code>
                     </h3>
 
-                    <Form debug onSubmit={getIssues}>
+                    <Form onSubmit={getIssues}>
                         <Input
-                            notrequired
+                            required
                             name="projectname"
                             title="Project Name"
                         />
@@ -295,42 +303,32 @@ const App = () => {
                         <Input name="created_at" />
                         <Input name="updated_at" />
                         <Button type="submit">Submit</Button>
+                        <Button type="reset">Reset</Button>
                     </Form>
 
                     {results.getIssues && (
                         <>
                             <h3>Result</h3>
                             <Code box>{results.getIssues}</Code>
+                            <Button onClick={() => clearResult('getIssues')}>
+                                Clear
+                            </Button>
                         </>
                     )}
                 </Card>
 
-                <Title as="h2">Debug</Title>
-
-                <Card>
-                    {/* <Button onClick={getIssues}>Get all</Button>
-                    {results.getIssues && (
-                        <>
-                            <h3>Results</h3>
-                            {results.getIssues.map((e, i) => (
+                {responses.length > 0 && (
+                    <>
+                        <Title as="h2">Responses</Title>
+                        <Card>
+                            {responses.map((e, i) => (
                                 <Code box key={i}>
                                     {e}
                                 </Code>
                             ))}
-                        </>
-                    )} */}
-
-                    <h3>Responses</h3>
-                    {responses.length ? (
-                        responses.map((e, i) => (
-                            <Code box key={i}>
-                                {e}
-                            </Code>
-                        ))
-                    ) : (
-                        <Code box> </Code>
-                    )}
-                </Card>
+                        </Card>
+                    </>
+                )}
             </Layout>
         </>
     );

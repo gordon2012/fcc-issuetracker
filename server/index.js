@@ -13,17 +13,6 @@ const origin =
 app.use(cors({ origin }));
 app.use(express.json());
 
-// debug
-// app.get('/api/issues', async (req, res) => {
-//     try {
-//         const Issue = await connect('issue', issueSchema);
-//         const issues = await Issue.find();
-//         res.status(200).json(issues);
-//     } catch (error) {
-//         res.status(400).json({ error: error.message });
-//     }
-// });
-
 app.post('/api/issues/:projectname', async (req, res) => {
     try {
         const { projectname } = req.params;
@@ -93,27 +82,22 @@ app.delete('/api/issues/:projectname?', async (req, res) => {
 });
 
 app.get('/api/issues/:projectname?', async (req, res) => {
-    // ???
     try {
-        req.query.open && Boolean(req.query.open);
-    } catch (error) {
-        res.status(400).json({ error: 'boolean error of some sort' });
-    }
+        if (req.query._id && !mongoose.Types.ObjectId.isValid(req.query._id)) {
+            return res.status(200).json([]);
+        }
+        if (
+            req.query.open &&
+            req.query.open !== 'true' &&
+            req.query.open !== 'false'
+        ) {
+            return res.status(200).json([]);
+        }
 
-    try {
         const { projectname } = req.params;
-
-        // console.log(req.query);
-
-        // const { open, ...query } = req.query;
-        // console.log(Boolean(open));
-
         const Issue = await connect('issue', issueSchema);
         const issues = await Issue.find({ projectname, ...req.query });
-
         res.status(200).json(issues);
-
-        // res.status(200).json(issues);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }

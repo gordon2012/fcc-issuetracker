@@ -58,7 +58,7 @@ const Form = ({ blank, children, debug, onSubmit, ...restProps }) => {
             <StyledForm onSubmit={handleSubmit} {...restProps}>
                 {elements}
             </StyledForm>
-            {debug && <Code box>{input}</Code>}
+            {debug && Object.keys(input).length > 0 && <Code box>{input}</Code>}
         </>
     );
 };
